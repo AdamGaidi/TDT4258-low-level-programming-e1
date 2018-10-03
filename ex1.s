@@ -85,28 +85,28 @@
         .thumb_func
 _reset:
 
-		//--- Adjust processor clock frequency ---
+	//--- Adjust processor clock frequency ---
 		
-		//Lower HFCLK (high frequency clock)
-		ldr r0, =CMU_BASE
-		ldr r1, =0x1c000 //Divide current HFCLK frequency by 7 + 1
-		str r1, [r0] //CMU_CTRL is at the start of CMU_BASE register, thus no need for offset
+	//Lower HFCLK (high frequency clock)
+	ldr r0, =CMU_BASE
+	ldr r1, =0x1c000 //Divide current HFCLK frequency by 7 + 1
+	str r1, [r0] //CMU_CTRL is at the start of CMU_BASE register, thus no need for offset
 		
-		//Lower HFCORECLK (high frequency core clock)
-		ldr r0, =CMU_BASE
-		ldr r1, =0x9 //Divide current HFCORECLK frequency by 512
-		str r1, [r0, #CMU_HFCORECLK]
+	//Lower HFCORECLK (high frequency core clock)
+	ldr r0, =CMU_BASE
+	ldr r1, =0x9 //Divide current HFCORECLK frequency by 512
+	str r1, [r0, #CMU_HFCORECLK]
 		
-		//--- Disable unused SRAM blocks ---
-		
-		//Disable blocks 1-2 by writing 3 to EMU_MEMCTRL
-		ldr r2, =EMU_BASE
-		mov r3, #0x3
-		str r3, [r2, #EMU_MEMCTRL]
+	//--- Disable unused SRAM blocks ---		
+	
+	//Disable blocks 1-2 by writing 3 to EMU_MEMCTRL
+	ldr r2, =EMU_BASE
+	mov r3, #0x3
+	str r3, [r2, #EMU_MEMCTRL]
 
         //--- Enable GPIO clock in CMU ---
 
-		//Load CMU_BASE register and HFPERCLK from offset
+	//Load CMU_BASE register and HFPERCLK from offset
         ldr r0, =CMU_BASE
         ldr r1, [r0, #CMU_HFPERCLKEN0]
 
@@ -115,13 +115,13 @@ _reset:
         lsl r2, r2, #CMU_HFPERCLKEN0_GPIO
         orr r1, r1, r2
 
-		//Store new value with GPIO clock enabled
+	//Store new value with GPIO clock enabled
         str r1, [r0, #CMU_HFPERCLKEN0]
         
 
         //--- Set lowest drive strength ---
 		
-		//Load GPIO_PA_BASE and GPIO_PA_CTRL from offset
+	//Load GPIO_PA_BASE and GPIO_PA_CTRL from offset
         ldr r0, =GPIO_PA_BASE
         ldr r1, [r0, #GPIO_CTRL]
 
@@ -129,7 +129,7 @@ _reset:
         mov r2, #1
         orr r1, r1, r2
 		
-		//Store new value with lowest drive strength enabled
+	//Store new value with lowest drive strength enabled
         str r1, [r0, #GPIO_CTRL]
         
 
@@ -146,7 +146,7 @@ _reset:
 
     	ldr r0, =GPIO_PC_BASE
 
-   		//Write 0x33333333 to GPIO_PC_MODEL
+   	//Write 0x33333333 to GPIO_PC_MODEL
     	mov r2, #0x33333333
     	str r2, [r0, #GPIO_MODEL]
 
@@ -159,34 +159,34 @@ _reset:
 
         //--- Interrupt setup ---
 	
-		//Enable interrupts for pins 0-7 on port C (buttons)
-		ldr r0, =GPIO_BASE
-		mov r1 , #0x22222222
-		str r1, [r0, #GPIO_EXTIPSELL]
-		mov r1, #0xff
+	//Enable interrupts for pins 0-7 on port C (buttons)
+	ldr r0, =GPIO_BASE
+	mov r1 , #0x22222222
+	str r1, [r0, #GPIO_EXTIPSELL]
+	mov r1, #0xff
         str r1, [r0, #GPIO_IEN]
-		str r1, [r0, #GPIO_EXTIFALL]
+	str r1, [r0, #GPIO_EXTIFALL]
 
-		//Clear interrupt flags
-		ldr r1, [r0, #GPIO_IF] // Determine source of interupt
-		str r1, [r0, #GPIO_IFC] // Clear flags
+	//Clear interrupt flags
+	ldr r1, [r0, #GPIO_IF] // Determine source of interupt
+	str r1, [r0, #GPIO_IFC] // Clear flags
 	
-		//Enable interupt handling
-		ldr r2, =0x802
-		ldr r3, =ISER0
-		str r2, [r3]
+	//Enable interupt handling
+	ldr r2, =0x802
+	ldr r3, =ISER0
+	str r2, [r3]
 		
 		
-		//--- Set deep-sleep mode ---
+	//--- Set deep-sleep mode ---
 		
         mov r7, #0x6
         ldr r8, =SCR
         str r7, [r8]
 		
 		
-		//--- Activate initial light ---
+	//--- Activate initial light ---
 		
-		mov r7,  #0b01111111
+	mov r7,  #0b01111111
         lsl r6, r7, #8
         ldr r0, =GPIO_PA_BASE
         str r6, [r0, #GPIO_DOUT]
@@ -208,8 +208,8 @@ sleep:
 
         .thumb_func
 gpio_handler:
-		ldr r1, =GPIO_PC_BASE
-		ldr r4, [r1, #GPIO_DIN]
+	ldr r1, =GPIO_PC_BASE
+	ldr r4, [r1, #GPIO_DIN]
 
         //Invert input to match the pattern: Button pressed -> 1
         mov r2, #0b11111111
@@ -217,8 +217,8 @@ gpio_handler:
         mov r6, #0 //Used to check if buttons was pressed
 
         //Test if leftbutton was pressed
-		mov r5, #0b00010001 //Bit 0 and 4 correspond to buttons SW1,SW5
-		and r5, r4, r5
+	mov r5, #0b00010001 //Bit 0 and 4 correspond to buttons SW1,SW5
+	and r5, r4, r5
 
         cmp r6, r5
         
@@ -278,15 +278,15 @@ if_downbutton:
 
 gp_out:
         //Output result from interrupt to LED lights
-		lsl r6, r7, #8
-		ldr r1, =GPIO_PA_BASE
-		str r6, [r1, #GPIO_DOUT]
+	lsl r6, r7, #8
+	ldr r1, =GPIO_PA_BASE
+	str r6, [r1, #GPIO_DOUT]
 
-		//Clear interrupt flags
-		ldr r1, =GPIO_BASE
-		ldr r2, [r1, #GPIO_IF] //Determine source of interupt
-		str r2, [r1, #GPIO_IFC] //Clear flags
-		bx lr //Return pc to location prior to interrupt
+	//Clear interrupt flags
+	ldr r1, =GPIO_BASE
+	ldr r2, [r1, #GPIO_IF] //Determine source of interupt
+	str r2, [r1, #GPIO_IFC] //Clear flags
+	bx lr //Return pc to location prior to interrupt
 	
 	
 	////////////////////////////////////////////////////////////////
